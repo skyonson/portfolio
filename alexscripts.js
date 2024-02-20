@@ -13,6 +13,7 @@ const tools = {
     PingOrCurrentStatusFortimgr: "{PFr",
     PingOrCurrentStatusMeraki: "{PMr",
     PingOrCurrentStatusVeloCloud: "{PVr",
+    PingOrCurrentStatusWattbox: "{PWb",
     PingInterfaces: "{In",
     getIPSecStatus: "{Ip",
     getSysArp: "{As",
@@ -32,6 +33,7 @@ const assetOrder = [
     "Satellite Modem",
     "Wireline Modem",
     "Switch",
+    "IoT Device",
 ]; //easiest way I could find to have the assets in a less random order
 
 const toolOrder = [
@@ -42,6 +44,7 @@ const toolOrder = [
     "PingOrCurrentStatusFortimgr",
     "PingOrCurrentStatusMeraki",
     "PingOrCurrentStatusVeloCloud",
+    "PingOrCurrentStatusWattbox",
     "PingInterfaces",
     "getIPSecStatus",
     "getSysArp",
@@ -500,6 +503,16 @@ function remoteRunTool(type, assetID, tool) {
                             }
                         }
                         addToolResult(assetID, tool, GWDetectResult);
+                        break;
+                    case "PingOrCurrentStatusWattbox":
+                        results = page.getElementById("pingResults");
+                        let WBPingResults = "";
+                        WBPingResults = document
+                            .querySelectorAll("table")[0]
+                            .innerText.split("\n")
+                            .slice(0, 12)
+                            .join("\n");
+                        addToolResult(assetID, tool, WBPingResults);
                         break;
                     default:
                         break;
