@@ -366,9 +366,13 @@ function remoteRunTool(type, assetID, tool) {
                         pingVeloCloudResult +=
                             "\n" +
                             tableParse(results.querySelectorAll("table")[1]);
-                        pingVeloCloudResult +=
-                            "\n" +
-                            tableParse(results.querySelectorAll("table")[2]);
+                        if (results.querySelectorAll("table").length > 2) {
+                            pingVeloCloudResult +=
+                                "\n" +
+                                tableParse(
+                                    results.querySelectorAll("table")[2]
+                                );
+                        }
                         // .innerText.split("\n")
                         // .map((s) => s.trim())
                         // .join("\n")
