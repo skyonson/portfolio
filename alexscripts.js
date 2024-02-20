@@ -507,7 +507,7 @@ function remoteRunTool(type, assetID, tool) {
                     case "PingOrCurrentStatusWattbox":
                         results = page.getElementById("pingResults");
                         let WBPingResults = "";
-                        WBPingResults = document
+                        WBPingResults = results
                             .querySelectorAll("table")[0]
                             .innerText.split("\n")
                             .slice(0, 12)
