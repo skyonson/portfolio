@@ -326,68 +326,53 @@ function remoteRunTool(type, assetID, tool) {
                         addToolResult(assetID, tool, pingHTSResult);
                         break;
                     case "PingECM":
-                        testing = page;
-                        results = page.querySelectorAll("tbody");
-                        // console.log(results);
+                        results = page.querySelectorAll("table");
 
-                        let pingECMResult = results[0].textContent;
-                        pingECMResult += results[1].textContent;
+                        let pingECMResult = tableParse(results[0]);
+                        pingECMResult += `\n${tableParse(results[1])}`;
 
                         addToolResult(assetID, tool, pingECMResult);
                         break;
                     case "PingJupEntTerminal":
                         results = page.querySelectorAll("table");
 
-                        let pingJupiter = results[0].textContent
-                            .split("\n")
-                            .map((s) => s.trim())
-                            .join("\n")
-                            .trim();
+                        let pingJupiter = tableParse(results[0]);
 
-                        pingJupiter += results[1].textContent
-                            .split("\n")
-                            .map((s) => s.trim())
-                            .join("\n")
-                            .trim();
+                        pingJupiter += `\n${tableParse(results[1])}`;
 
                         addToolResult(assetID, tool, pingJupiter);
                         break;
                     case "PingOrCurrentStatusFortimgr":
                         results = page.getElementById("pingResults");
 
-                        let pingFortimgrResult = results.textContent
-                            .split("\n\n")[1]
-                            .replace(/\s{2,}/g, "\n")
-                            .trim();
+                        let pingFortimgrResult = tableParse(
+                            results.querySelectorAll("table")[0]
+                        );
 
                         addToolResult(assetID, tool, pingFortimgrResult);
                         break;
                     case "PingOrCurrentStatusMeraki":
-                        let pingMerakiResult = page
-                            .querySelector("tbody")
-                            .textContent.replace(/\s{2,}/g, "\n")
-                            .trim();
-
+                        let pingMerakiResult = tableParse(
+                            page.querySelector("table")
+                        );
                         addToolResult(assetID, tool, pingMerakiResult);
                         break;
                     case "PingOrCurrentStatusVeloCloud":
                         results = page.getElementById("pingResults");
 
-                        let pingVeloCloudResult = results
-                            .querySelectorAll("table")[0]
-                            .innerText.replace(/ {2,}/g, "")
-                            .trim();
+                        let pingVeloCloudResult = tableParse(
+                            results.querySelectorAll("table")[0]
+                        ).trim();
                         pingVeloCloudResult +=
                             "\n" +
-                            results
-                                .querySelectorAll("table")[1]
-                                .innerText.split("\n")
-                                .map((s) => s.trim())
-                                .join("\n")
-                                .replace(/\n{3,}/g, "|")
-                                .replace(/\n{1}/g, " ")
-                                .replaceAll("|", "\n")
-                                .trim();
+                            tableParse(results.querySelectorAll("table")[1]);
+                        // .innerText.split("\n")
+                        // .map((s) => s.trim())
+                        // .join("\n")
+                        // .replace(/\n{3,}/g, "|")
+                        // .replace(/\n{1}/g, " ")
+                        // .replaceAll("|", "\n")
+                        // .trim();
 
                         addToolResult(assetID, tool, pingVeloCloudResult);
                         break;
@@ -507,9 +492,10 @@ function remoteRunTool(type, assetID, tool) {
                     case "PingOrCurrentStatusWattbox":
                         results = page.getElementById("pingResults");
                         let WBPingResults = "";
-                        WBPingResults = results
-                            .querySelectorAll("table")[0]
-                            .innerText.split("\n")
+                        WBPingResults = tableParse(
+                            results.querySelectorAll("table")[0]
+                        )
+                            .split("\n")
                             .slice(0, 12)
                             .join("\n");
                         addToolResult(assetID, tool, WBPingResults);
@@ -750,5 +736,18 @@ function placeholderAnimator() {
     }
     requestAnimationFrame(placeholderAnimator);
 }
+
+function tableParse(HTMLtable) {
+    let output = "";
+    for (let row = 0; row < HTMLtable.rows.length; row++) {
+        for (let cell = 0; cell < HTMLtable.rows[row].cells.length; cell++) {
+            output += `${HTMLtable.rows[row].cells[cell].innerText.trim()}\t`;
+        }
+        output = output.trim() + "\n";
+    }
+    return output.trim();
+}
 // requestAnimationFrame(placeholderAnimator);
 // window.setInterval(placeholderAnimator, 100)
+
+// HHM2078224901D1
