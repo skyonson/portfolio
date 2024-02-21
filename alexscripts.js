@@ -688,23 +688,52 @@ function addLoadingElements() {
             '<div id="Modal_Load" class="modal_right"><div class="modal_right-content" style= "height : 100%"><span class="close" onclick="SideModalClose(\'Load\')"></span><div class= "H2"><strong>Choose Saved Case to Load</strong></div><br><div class="containerside" id="savedNotes"><button class="accordiontitle">Saved Cases</button></div><div class="containerside3" id="areadebotones"><div class="row"><button class="boton_n bClose" onclick="SideModalClose(\'Load\')"><span>CLOSE </span></button></div></div></div></div>';
         document.body.appendChild(loadModal);
     }
+    let headerContainer = document.getElementsByClassName("container-header");
 
     let headerText =
-        document.getElementsByClassName("container-header")[0].children[
-            document.getElementsByClassName("container-header")[0].children
-                .length - 1
-        ];
-    document
-        .getElementsByClassName("container-header")[0]
-        .children[
-            document.getElementsByClassName("container-header")[0].children
-                .length - 1
-        ].remove();
-    document.getElementsByClassName("container-header")[0].innerHTML +=
-        '<div class= "icon-top headertext" title="Load Previous Notes"><i style="float:right; margin-top: 5px; margin-right: 10px;" class="fas fa-sync" onclick="loadNotes(\'previousNotes\')"></i></div><div class= "icon-top headertext" title="Load Autosaved Notes"><i style="float:right; margin-top: 5px; margin-right: 10px;" class="fas fa-redo" onclick="loadNotes(\'autoSave\')"></i></div><div class= "icon-top headertext" title="Load Saved Notes"><i style="float:right; margin-top: 5px; margin-right: 10px;" class="fas fa-upload" onclick="manualLoad()"></i></div><div class= "icon-top headertext" title="Save Notes As"><i style="float:right; margin-top: 5px; margin-right: 10px;" class="fas fa-download" onclick="manualSave()"></i></div>';
-    document
-        .getElementsByClassName("container-header")[0]
-        .appendChild(headerText);
+        headerContainer[0].children[headerContainer[0].children.length - 1];
+    headerContainer[0].children[
+        headerContainer[0].children.length - 1
+    ].remove();
+
+    if (!document.querySelector("[title='Load Previous Notes']")) {
+        headerContainer[0].innerHTML += `<div class="icon-top headertext" title="Load Previous Notes">
+        <i
+            style="float: right; margin-top: 5px; margin-right: 10px"
+            class="fas fa-sync"
+            onclick="loadNotes('previousNotes')"
+        ></i>
+    </div>`;
+    }
+    if (!document.querySelector("[title='Load Autosaved Notes']")) {
+        headerContainer[0].innerHTML += `<div class="icon-top headertext" title="Load Autosaved Notes">
+        <i
+            style="float: right; margin-top: 5px; margin-right: 10px"
+            class="fas fa-redo"
+            onclick="loadNotes('autoSave')"
+        ></i>
+    </div>`;
+    }
+    if (!document.querySelector("[title='Load Saved Notes Notes']")) {
+        headerContainer[0].innerHTML += `<div class="icon-top headertext" title="Load Saved Notes">
+        <i
+            style="float: right; margin-top: 5px; margin-right: 10px"
+            class="fas fa-upload"
+            onclick="manualLoad()"
+        ></i>
+    </div>`;
+    }
+    if (!document.querySelector("[title='Save Notes As']")) {
+        headerContainer[0].innerHTML += `<div class="icon-top headertext" title="Save Notes As">
+        <i
+            style="float: right; margin-top: 5px; margin-right: 10px"
+            class="fas fa-download"
+            onclick="manualSave()"
+        ></i>
+    </div>`;
+    }
+
+    headerContainer[0].appendChild(headerText);
 }
 
 let baseline = `Click here to start documenting your interaction.
