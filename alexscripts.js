@@ -2,21 +2,47 @@ let toolRunnerSettings = localStorage.getItem("settings")
     ? JSON.parse(localStorage.getItem("settings"))
     : {
           autoSaveInterval: { value: 60, type: "number" },
-          getIPsecInterface: { value: true, type: "checkbox" },
+          getIPsecInterface: { value: false, type: "checkbox" },
           templateSeperator: { value: false, type: "checkbox" },
           seperationText: { value: "========================", type: "text" },
           SHORTGWDETECT: { value: true, type: "checkbox" },
           placeholderAnimation: { value: false, type: "checkbox" },
+          interfaceUnderAsset: { value: true, type: "checkbox" },
       };
 
-localStorage.setItem("settings", JSON.stringify(toolRunnerSettings));
+let autoSaveInterval = toolRunnerSettings["autoSaveInterval"]
+    ? toolRunnerSettings["autoSaveInterval"].value
+    : 60;
+let getIPsecInterface = toolRunnerSettings["getIPsecInterface"]
+    ? toolRunnerSettings["getIPsecInterface"].value
+    : false;
+let templateSeperator = toolRunnerSettings["templateSeperator"]
+    ? toolRunnerSettings["templateSeperator"].value
+    : false;
+let seperationText = toolRunnerSettings["seperationText"]
+    ? toolRunnerSettings["seperationText"].value
+    : "========================";
+let SHORTGWDETECT = toolRunnerSettings["SHORTGWDETECT"]
+    ? toolRunnerSettings["SHORTGWDETECT"].value
+    : true;
+let placeholderAnimation = toolRunnerSettings["placeholderAnimation"]
+    ? toolRunnerSettings["placeholderAnimation"].value
+    : false;
+let uptimeUnderAsset = toolRunnerSettings["uptimeUnderAsset"]
+    ? toolRunnerSettings["uptimeUnderAsset"].value
+    : true;
 
-let autoSaveInterval = toolRunnerSettings["autoSaveInterval"].value;
-let getIPsecInterface = toolRunnerSettings["getIPsecInterface"].value;
-let templateSeperator = toolRunnerSettings["templateSeperator"].value;
-let seperationText = toolRunnerSettings["seperationText"].value;
-let SHORTGWDETECT = toolRunnerSettings["SHORTGWDETECT"].value;
-let placeholderAnimation = toolRunnerSettings["placeholderAnimation"].value;
+toolRunnerSettings = {
+    autoSaveInterval: { value: autoSaveInterval, type: "number" },
+    getIPsecInterface: { value: getIPsecInterface, type: "checkbox" },
+    templateSeperator: { value: templateSeperator, type: "checkbox" },
+    seperationText: { value: seperationText, type: "text" },
+    SHORTGWDETECT: { value: SHORTGWDETECT, type: "checkbox" },
+    placeholderAnimation: { value: placeholderAnimation, type: "checkbox" },
+    uptimeUnderAsset: { value: uptimeUnderAsset, type: "checkbox" },
+};
+
+localStorage.setItem("settings", JSON.stringify(toolRunnerSettings));
 
 let ignoreList = ["settings", "theme"];
 
@@ -236,7 +262,7 @@ function createTemplate(type, assetID, toolList) {
     for (tool in toolList) {
         if (toolList[tool].id == "PingInterfaces") hasInterface = true;
     }
-    if (hasInterface) {
+    if (hasInterface && uptimeUnderAsset) {
         template = `{uT${assetID}}\n`;
     } else {
         template = "\n";
@@ -442,12 +468,17 @@ function remoteRunTool(type, assetID, tool) {
                                         .replaceAll(".", "\n");
                             }
                         }
-                        if (uptime[2]) {
+                        if (uptime[2] && uptimeUnderAsset) {
                             // console.log(uptime)
                             addUptimeResult(
                                 uptime[2].innerText.replace("=", "-"),
                                 assetID
                             );
+                        } else if (uptime[2] && !uptimeUnderAsset) {
+                            interfaceResult += `\n${uptime[2].innerText.replace(
+                                "=",
+                                "-"
+                            )}`;
                         } else {
                             removeUptimeResult(assetID);
                         }
@@ -860,7 +891,7 @@ function settingsPopup() {
         settingsEditor.style.left = "50%";
         settingsEditor.style.top = "50%";
         settingsEditor.style.width = "350px";
-        settingsEditor.style.height = "250px";
+        settingsEditor.style.paddingBottom = "75px";
         settingsEditor.style.backgroundColor = "var(--color-06)";
         settingsEditor.style.borderRadius = "8px";
         settingsEditor.id = "settingsEditor";
@@ -903,6 +934,8 @@ function closeSettings(save) {
         seperationText = toolRunnerSettings["seperationText"].value;
         SHORTGWDETECT = toolRunnerSettings["SHORTGWDETECT"].value;
         placeholderAnimation = toolRunnerSettings["placeholderAnimation"].value;
+        uptimeUnderAsset = toolRunnerSettings["uptimeUnderAsset"].value;
+        
         localStorage.setItem("settings", JSON.stringify(toolRunnerSettings));
 
         if (placeholderAnimation) {
