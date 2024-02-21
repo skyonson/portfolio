@@ -271,7 +271,11 @@ function removeAsset(assetID) {
     if (lineNum == -1) {
         return;
     }
-    n.splice(lineNum - 1, 2);
+    if (templateSeperator) {
+        n.splice(lineNum - 2, 3);
+    } else {
+        n.splice(lineNum - 1, 2);
+    }
     n = n.join("\n").trim();
     document.getElementById("ToolRes2").value = n;
 }
