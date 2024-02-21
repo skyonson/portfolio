@@ -7,8 +7,10 @@ let toolRunnerSettings = localStorage.getItem("settings")
           seperationText: { value: "========================", type: "text" },
           SHORTGWDETECT: { value: true, type: "checkbox" },
           placeholderAnimation: { value: false, type: "checkbox" },
-          interfaceUnderAsset: { value: true, type: "checkbox" },
+          uptimeUnderAsset: { value: true, type: "checkbox" },
       };
+
+let isExtension = false;
 
 let autoSaveInterval = toolRunnerSettings["autoSaveInterval"]
     ? toolRunnerSettings["autoSaveInterval"].value
@@ -118,51 +120,61 @@ function firstContaining(lines, subString) {
 }
 
 function getAssets() {
-    if (document.getElementById("assetBox").value == "") {
+    let assetID = document.getElementById("assetBox").value.trim();
+    if (assetID == "") {
         return;
     }
     if (openNMP) {
         open(
-            "https://faultuser.hughes.net/RapidSuite/externalObjectDetails.gsp?name=" +
-                document.getElementById("assetBox").value
+            `https://faultuser.hughes.net/RapidSuite/externalObjectDetails.gsp?name=${assetID}`
         );
     }
 
-    chrome.runtime.sendMessage(
-        extensionID,
-        {
-            request: "assets",
-            assetID: document.getElementById("assetBox").value.trim(),
-        },
-        function (response) {
-            let page = new DOMParser().parseFromString(
-                response.page,
-                "text/html"
-            );
-            let assets = {
-                0: {
-                    assetID: document.getElementById("assetBox").value,
-                    type: page.getElementsByClassName("table")[0].children[0]
-                        .children[1].children[1].textContent,
-                },
-            };
-            if (page.getElementById("otherDevicesTable")) {
-                let otherDevicesTable =
-                    page.getElementById("otherDevicesTable").rows;
-                for (let row = 1; row < otherDevicesTable.length; row++) {
-                    assets[row] = {
-                        assetID:
-                            otherDevicesTable[row].cells[0].children[0]
-                                .innerHTML,
-                        // name : otherDevicesTable[row].cells[1].innerHTML,
-                        type: otherDevicesTable[row].cells[2].innerHTML,
-                    };
-                }
-            }
-            // console.log(assets);
-            createAssetTemplate(assets);
+    if (isExtension) {
+        chrome.runtime.sendMessage(
+            extensionID,
+            {
+                request: "assets",
+                assetID: assetID,
+            },
+            parseAssetResponse
+        );
+    } else {
+        try {
+            chrome.runtime
+                .sendMessage(extensionID, { request: "cookie" })
+                .then((response) => (isExtension = true));
+        } catch (error) {
+            fetch(
+                `https://faultuser.hughes.net/RapidSuite/externalObjectDetails.gsp?name=${assetID}`
+            )
+                .then((r) => r.text())
+                .then((r) => parseAssetResponse(r));
         }
-    );
+    }
+}
+
+function parseAssetResponse(response) {
+    let page = new DOMParser().parseFromString(response.page, "text/html");
+    let assets = {
+        0: {
+            assetID: document.getElementById("assetBox").value,
+            type: page.getElementsByClassName("table")[0].children[0]
+                .children[1].children[1].textContent,
+        },
+    };
+    if (page.getElementById("otherDevicesTable")) {
+        let otherDevicesTable = page.getElementById("otherDevicesTable").rows;
+        for (let row = 1; row < otherDevicesTable.length; row++) {
+            assets[row] = {
+                assetID: otherDevicesTable[row].cells[0].children[0].innerHTML,
+                // name : otherDevicesTable[row].cells[1].innerHTML,
+                type: otherDevicesTable[row].cells[2].innerHTML,
+            };
+        }
+    }
+    // console.log(assets);
+    createAssetTemplate(assets);
 }
 
 function createAssetTemplate(assets) {
@@ -193,7 +205,8 @@ function createAssetTemplate(assets) {
 }
 
 function getTools(assets) {
-    for (asset in assets) {
+    for (const asset in assets) {
+        if(isExtension){
         chrome.runtime.sendMessage(
             extensionID,
             {
@@ -201,61 +214,65 @@ function getTools(assets) {
                 assetID: assets[asset].assetID,
                 type: assets[asset].type,
             },
-            function (response) {
-                let page = new DOMParser().parseFromString(
-                    response.page,
-                    "text/html"
-                );
-                let assetID = response.assetID;
-                let type = response.type;
-                let troubleshooting = page.getElementById(
-                    "troubleshootingActions"
-                );
-                let advanced = page.getElementById("advancedActions");
-                let toolList = { hasTools: false };
-                for (let i = 0; i < troubleshooting.length; i++) {
-                    try {
-                        let tool = troubleshooting.options[i]
-                            .getAttribute("onclick")
-                            .split("action=")[1]
-                            .split("', '")[0];
-                        if (tools[tool]) {
-                            toolList[i] = {
-                                id: tool,
-                                name: troubleshooting[i].value,
-                            };
-                            toolList.hasTools = true;
-                        }
-                    } catch (error) {}
-                }
-                if (advanced) {
-                    for (let i = 0; i < advanced.length; i++) {
-                        try {
-                            let tool = advanced.options[i]
-                                .getAttribute("onclick")
-                                .split("action=")[1]
-                                .split("', '")[0];
-                            if (tools[tool]) {
-                                toolList[i + troubleshooting.length] = {
-                                    id: tool,
-                                    name: advanced[i].value,
-                                };
-                                toolList.hasTools = true;
-                            }
-                        } catch (error) {}
-                    }
-                }
-                if (toolList.hasTools) {
-                    delete toolList.hasTools;
-                    createTemplate(type, assetID, toolList);
-                } else {
-                    removeAsset(assetID);
-                }
-            }
-        );
+            parseAssetTools
+        );} else {
+            fetch(`https://faultuser.hughes.net/RapidSuite/externalObjectDetailsActionsPanel.gsp?name=${request.assetID}&includeScripts=false`)
+                .then(r => r.text())
+                .then(r => parseAssetTools({page:r, assetID: assets[asset].assetID, type: assets[asset].type}));
+        }
     }
 }
-
+function parseAssetTools(response) {
+    let page = new DOMParser().parseFromString(
+        response.page,
+        "text/html"
+    );
+    let assetID = response.assetID;
+    let type = response.type;
+    let troubleshooting = page.getElementById(
+        "troubleshootingActions"
+    );
+    let advanced = page.getElementById("advancedActions");
+    let toolList = { hasTools: false };
+    for (let i = 0; i < troubleshooting.length; i++) {
+        try {
+            let tool = troubleshooting.options[i]
+                .getAttribute("onclick")
+                .split("action=")[1]
+                .split("', '")[0];
+            if (tools[tool]) {
+                toolList[i] = {
+                    id: tool,
+                    name: troubleshooting[i].value,
+                };
+                toolList.hasTools = true;
+            }
+        } catch (error) {}
+    }
+    if (advanced) {
+        for (let i = 0; i < advanced.length; i++) {
+            try {
+                let tool = advanced.options[i]
+                    .getAttribute("onclick")
+                    .split("action=")[1]
+                    .split("', '")[0];
+                if (tools[tool]) {
+                    toolList[i + troubleshooting.length] = {
+                        id: tool,
+                        name: advanced[i].value,
+                    };
+                    toolList.hasTools = true;
+                }
+            } catch (error) {}
+        }
+    }
+    if (toolList.hasTools) {
+        delete toolList.hasTools;
+        createTemplate(type, assetID, toolList);
+    } else {
+        removeAsset(assetID);
+    }
+}
 function createTemplate(type, assetID, toolList) {
     let template;
     let hasInterface = false;
@@ -935,7 +952,7 @@ function closeSettings(save) {
         SHORTGWDETECT = toolRunnerSettings["SHORTGWDETECT"].value;
         placeholderAnimation = toolRunnerSettings["placeholderAnimation"].value;
         uptimeUnderAsset = toolRunnerSettings["uptimeUnderAsset"].value;
-        
+
         localStorage.setItem("settings", JSON.stringify(toolRunnerSettings));
 
         if (placeholderAnimation) {
