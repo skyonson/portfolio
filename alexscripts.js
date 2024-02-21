@@ -1,9 +1,24 @@
-const autoSaveInterval = 60; // number of seconds between autosaves
-const getIPsecInterface = true;
-const templateSeperator = false;
-const SHORTGWDETECT = true;
+let toolRunnerSettings = localStorage.getItem("settings")
+    ? JSON.parse(localStorage.getItem("settings"))
+    : {
+          autoSaveInterval: { value: 60, type: "number" },
+          getIPsecInterface: { value: true, type: "checkbox" },
+          templateSeperator: { value: false, type: "checkbox" },
+          seperationText: { value: "========================", type: "text" },
+          SHORTGWDETECT: { value: true, type: "checkbox" },
+          placeholderAnimation: { value: false, type: "checkbox" },
+      };
 
-let testing;
+localStorage.setItem("settings", JSON.stringify(toolRunnerSettings));
+
+let autoSaveInterval = toolRunnerSettings["autoSaveInterval"].value;
+let getIPsecInterface = toolRunnerSettings["getIPsecInterface"].value;
+let templateSeperator = toolRunnerSettings["templateSeperator"].value;
+let seperationText = toolRunnerSettings["seperationText"].value;
+let SHORTGWDETECT = toolRunnerSettings["SHORTGWDETECT"].value;
+let placeholderAnimation = toolRunnerSettings["placeholderAnimation"].value;
+
+let ignoreList = ["settings", "theme"];
 
 const tools = {
     Ping: "{PCs",
@@ -14,6 +29,7 @@ const tools = {
     PingOrCurrentStatusMeraki: "{PMr",
     PingOrCurrentStatusVeloCloud: "{PVr",
     PingOrCurrentStatusWattbox: "{PWb",
+    PingOrCurrentStatusHughesApe: "{PHa",
     PingInterfaces: "{In",
     getIPSecStatus: "{Ip",
     getSysArp: "{As",
@@ -45,6 +61,7 @@ const toolOrder = [
     "PingOrCurrentStatusMeraki",
     "PingOrCurrentStatusVeloCloud",
     "PingOrCurrentStatusWattbox",
+    "PingOrCurrentStatusHughesApe",
     "PingInterfaces",
     "getIPSecStatus",
     "getSysArp",
@@ -132,7 +149,7 @@ function createAssetTemplate(assets) {
         for (asset in assets) {
             if (assets[asset].type == assetOrder[type]) {
                 if (templateSeperator) {
-                    template += "========================\n";
+                    template += `${seperationText}\n`;
                 }
                 template +=
                     assets[asset].type +
@@ -507,6 +524,14 @@ function remoteRunTool(type, assetID, tool) {
                             .join("\n");
                         addToolResult(assetID, tool, WBPingResults);
                         break;
+                    case "PingOrCurrentStatusHughesApe":
+                        results = page.getElementById("pingResults");
+                        let HAPingResults = "";
+                        HAPingResults = tableParse(
+                            results.querySelectorAll("table")[1]
+                        );
+                        addToolResult(assetID, tool, HAPingResults);
+                        break;
                     default:
                         break;
                 }
@@ -635,7 +660,10 @@ function manualLoad() {
     }
     let button;
     for (note in localStorage) {
-        if (typeof localStorage[note] == "string") {
+        if (
+            typeof localStorage[note] == "string" &&
+            !ignoreList.includes(note)
+        ) {
             button = document.createElement("button");
             button.innerText = note;
             button.className = "accordion";
@@ -649,15 +677,17 @@ function manualLoad() {
     Template("Load");
 }
 
-setInterval(function () {
+let autoSaveID = setInterval(function () {
     saveNotes("autoSave");
 }, autoSaveInterval * 1000);
 
 function addLoadingElements() {
-    let loadModal = document.createElement("div");
-    loadModal.innerHTML =
-        '<div id="Modal_Load" class="modal_right"><div class="modal_right-content" style= "height : 100%"><span class="close" onclick="SideModalClose(\'Load\')"></span><div class= "H2"><strong>Choose Saved Case to Load</strong></div><br><div class="containerside" id="savedNotes"><button class="accordiontitle">Saved Cases</button></div><div class="containerside3" id="areadebotones"><div class="row"><button class="boton_n bClose" onclick="SideModalClose(\'Load\')"><span>CLOSE </span></button></div></div></div></div>';
-    document.body.appendChild(loadModal);
+    if (!document.getElementById("Modal_Load")) {
+        let loadModal = document.createElement("div");
+        loadModal.innerHTML =
+            '<div id="Modal_Load" class="modal_right"><div class="modal_right-content" style= "height : 100%"><span class="close" onclick="SideModalClose(\'Load\')"></span><div class= "H2"><strong>Choose Saved Case to Load</strong></div><br><div class="containerside" id="savedNotes"><button class="accordiontitle">Saved Cases</button></div><div class="containerside3" id="areadebotones"><div class="row"><button class="boton_n bClose" onclick="SideModalClose(\'Load\')"><span>CLOSE </span></button></div></div></div></div>';
+        document.body.appendChild(loadModal);
+    }
 
     let headerText =
         document.getElementsByClassName("container-header")[0].children[
@@ -741,7 +771,9 @@ function placeholderAnimator() {
         }
         // console.log(index)
     }
-    requestAnimationFrame(placeholderAnimator);
+    if (placeholderAnimation) {
+        requestAnimationFrame(placeholderAnimator);
+    }
 }
 
 function tableParse(HTMLtable) {
@@ -754,5 +786,91 @@ function tableParse(HTMLtable) {
     }
     return output.trim();
 }
-// requestAnimationFrame(placeholderAnimator);
-// window.setInterval(placeholderAnimator, 100)
+if (placeholderAnimation) {
+    requestAnimationFrame(placeholderAnimator);
+}
+
+function addSettings() {
+    let sep = document.createElement("div");
+    sep.classList += "nav-rightseparador";
+    sep.innerText = "|";
+    document.getElementById("navBar").appendChild(sep);
+
+    let settingButton = document.createElement("a");
+    settingButton.classList += "nav-right";
+    settingButton.innerText = "Settings";
+    settingButton.onclick = settingsPopup;
+    document.getElementById("navBar").appendChild(settingButton);
+
+    let test = document.createElement("style");
+    test.innerHTML = `input[type="checkbox"]:before {display: none;} input[type="checkbox"]:checked:after {display: none;}`;
+    document.head.appendChild(test);
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        addLoadingElements();
+        addSettings();
+    },
+    false
+);
+
+function settingsPopup() {
+    let settingsEditor = document.createElement("div");
+
+    settingsEditor.style.padding = "8px";
+    settingsEditor.style.position = "absolute";
+    settingsEditor.style.transform = "translate(-50%, -50%)";
+    settingsEditor.style.left = "50%";
+    settingsEditor.style.top = "50%";
+    settingsEditor.style.width = "250px";
+    settingsEditor.style.height = "450px";
+    settingsEditor.style.backgroundColor = "var(--color-06)";
+    settingsEditor.id = "settingsEditor";
+
+    settingsEditor.innerHTML = `<div id="settingHolder"></div><div style="display: flex;justify-content: space-evenly;position: absolute;transform: translate(-50%, -100%);left: 50%;bottom: 0px;width: 100%;
+    "><a onclick="closeSettings(true)">Save</a><a onclick="closeSettings(false)">Close</a></div>`;
+    let temp;
+    for (setting in toolRunnerSettings) {
+        temp = document.createElement("div");
+        temp.innerHTML = `<label for="${setting}">${setting}</label><input type="${toolRunnerSettings[setting].type}" id="${setting}"></input>`;
+        if (toolRunnerSettings[setting].type != "checkbox") {
+            temp.children[1].value = toolRunnerSettings[setting].value;
+        } else if (toolRunnerSettings[setting].type == "checkbox") {
+            temp.children[1].checked = toolRunnerSettings[setting].value;
+        }
+        settingsEditor.children[0].appendChild(temp);
+    }
+
+    document.body.appendChild(settingsEditor);
+}
+
+function closeSettings(save) {
+    if (save) {
+        let childrenTemp = document.getElementById("settingHolder").children;
+        for (let i = 0; i < childrenTemp.length; i++) {
+            toolRunnerSettings[childrenTemp[i].children[0].innerText].value =
+                childrenTemp[i].children[1].type == "checkbox"
+                    ? childrenTemp[i].children[1].checked
+                    : childrenTemp[i].children[1].value;
+        }
+
+        autoSaveInterval = toolRunnerSettings["autoSaveInterval"].value;
+        getIPsecInterface = toolRunnerSettings["getIPsecInterface"].value;
+        templateSeperator = toolRunnerSettings["templateSeperator"].value;
+        seperationText = toolRunnerSettings["seperationText"].value;
+        SHORTGWDETECT = toolRunnerSettings["SHORTGWDETECT"].value;
+        placeholderAnimation = toolRunnerSettings["placeholderAnimation"].value;
+        localStorage.setItem("settings", JSON.stringify(toolRunnerSettings));
+
+        if (placeholderAnimation) {
+            requestAnimationFrame(placeholderAnimator);
+        }
+        clearInterval(autoSaveID);
+        autoSaveID = setInterval(function () {
+            saveNotes("autoSave");
+        }, autoSaveInterval * 1000);
+    }
+    document.getElementById("settingsEditor").remove();
+}
