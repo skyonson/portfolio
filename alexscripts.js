@@ -846,33 +846,41 @@ document.addEventListener(
 );
 
 function settingsPopup() {
-    let settingsEditor = document.createElement("div");
+    if (!document.getElementById("settingHolder")) {
+        let settingsEditor = document.createElement("div");
 
-    settingsEditor.style.padding = "8px";
-    settingsEditor.style.position = "absolute";
-    settingsEditor.style.transform = "translate(-50%, -50%)";
-    settingsEditor.style.left = "50%";
-    settingsEditor.style.top = "50%";
-    settingsEditor.style.width = "250px";
-    settingsEditor.style.height = "450px";
-    settingsEditor.style.backgroundColor = "var(--color-06)";
-    settingsEditor.id = "settingsEditor";
+        settingsEditor.style.padding = "8px";
+        settingsEditor.style.color = "var(--color-02)";
+        settingsEditor.style.position = "absolute";
+        settingsEditor.style.transform = "translate(-50%, -50%)";
+        settingsEditor.style.left = "50%";
+        settingsEditor.style.top = "50%";
+        settingsEditor.style.width = "350px";
+        settingsEditor.style.height = "250px";
+        settingsEditor.style.backgroundColor = "var(--color-06)";
+        settingsEditor.style.borderRadius = "8px";
+        settingsEditor.id = "settingsEditor";
 
-    settingsEditor.innerHTML = `<div id="settingHolder"></div><div style="display: flex;justify-content: space-evenly;position: absolute;transform: translate(-50%, -100%);left: 50%;bottom: 0px;width: 100%;
+        settingsEditor.innerHTML = `<div id="settingHolder"></div><div style="display: flex;justify-content: space-evenly;position: absolute;transform: translate(-50%, -100%);left: 50%;bottom: 0px;width: 100%;
     "><a onclick="closeSettings(true)">Save</a><a onclick="closeSettings(false)">Close</a></div>`;
-    let temp;
-    for (setting in toolRunnerSettings) {
-        temp = document.createElement("div");
-        temp.innerHTML = `<label for="${setting}">${setting}</label><input type="${toolRunnerSettings[setting].type}" id="${setting}"></input>`;
-        if (toolRunnerSettings[setting].type != "checkbox") {
-            temp.children[1].value = toolRunnerSettings[setting].value;
-        } else if (toolRunnerSettings[setting].type == "checkbox") {
-            temp.children[1].checked = toolRunnerSettings[setting].value;
-        }
-        settingsEditor.children[0].appendChild(temp);
-    }
+        let temp;
+        for (setting in toolRunnerSettings) {
+            temp = document.createElement("div");
+            temp.style.display = "flex";
+            temp.style.justifyContent = "space-evenly";
+            temp.style.margin = "8px";
 
-    document.body.appendChild(settingsEditor);
+            temp.innerHTML = `<label for="${setting}" style="padding:0px;">${setting}</label><input type="${toolRunnerSettings[setting].type}" id="${setting}"></input>`;
+            if (toolRunnerSettings[setting].type != "checkbox") {
+                temp.children[1].value = toolRunnerSettings[setting].value;
+            } else if (toolRunnerSettings[setting].type == "checkbox") {
+                temp.children[1].checked = toolRunnerSettings[setting].value;
+            }
+            settingsEditor.children[0].appendChild(temp);
+        }
+
+        document.body.appendChild(settingsEditor);
+    }
 }
 
 function closeSettings(save) {
