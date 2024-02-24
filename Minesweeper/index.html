@@ -1,0 +1,76 @@
+<html>
+    <head>
+        <script src="script.js"></script>
+        <link rel="stylesheet" href="style.css" />
+        <title>MinSweeper</title>
+    </head>
+    <body>
+        <div id="starter" class="newGameForm">
+            <label for="boardWidth">Width:</label>
+            <input
+                type="number"
+                id="boardWidth"
+                min="10"
+                max="500"
+                value="20"
+            />
+            <label for="boardHeight">Height:</label>
+            <input
+                type="number"
+                id="boardHeight"
+                min="10"
+                max="500"
+                value="20"
+            />
+            <label for="Mine Percentage">Mine Percentage:</label>
+            <div id="percent" style="margin-left: auto; margin-right: auto">
+            </div>
+            <input
+                type="range"
+                id="minePercent"
+                min=".02"
+                max=".3"
+                step=".01"
+                value=".15"
+            />
+            <button type="submit" onclick="initialize()" id="ng">
+                New Game
+            </button>
+            <script>
+                function updateMines() {
+                    document.getElementById(
+                        "percent"
+                    ).innerText = `${Math.floor(
+                        document.getElementById("minePercent").value * 100
+                    )}% - ${Math.floor(
+                        Math.floor(
+                            document.getElementById("boardWidth").value
+                        ) *
+                            Math.floor(
+                                document.getElementById("boardHeight").value
+                            ) *
+                            document.getElementById("minePercent").value
+                    )} Mines`;
+                }
+                document
+                    .getElementById("minePercent")
+                    .addEventListener("input", updateMines, false);
+                document
+                    .getElementById("boardWidth")
+                    .addEventListener("input", updateMines, false);
+                document
+                    .getElementById("boardHeight")
+                    .addEventListener("input", updateMines, false);
+                    updateMines()
+            </script>
+        </div>
+        <!-- <canvas
+            id="minefield"
+            class="minefield"
+            oncontextmenu="return false;"
+        ></canvas> -->
+        <script>
+            // initialize();
+        </script>
+    </body>
+</html>

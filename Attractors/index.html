@@ -1,0 +1,64 @@
+<html>
+    <head>
+        <script src="script.js" defer></script>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="inputs">
+            <canvas id="preview" class="preview"></canvas>
+            <div class="inputHolder">
+                <label for="A">A</label>
+                <input type="range" name="A" id="ASlider" min="-3" max="3" step=".001">
+                <input type="number" id="ANumber" min="-3" max="3" step=".001">
+            </div>
+            <div class="inputHolder">
+                <label for="B">B</label>
+                <input type="range" name="B" id="BSlider" min="-3" max="3" step=".001">
+                <input type="number" id="BNumber" min="-3" max="3" step=".001">
+            </div>
+            <div class="inputHolder">
+                <label for="C">C</label>
+                <input type="range" name="C" id="CSlider" min="-3" max="3" step=".001">
+                <input type="number" id="CNumber" min="-3" max="3" step=".001">
+            </div>
+            <div class="inputHolder">
+                <label for="D">D</label>
+                <input type="range" name="D" id="DSlider" min="-3" max="3" step=".001">
+                <input type="number" id="DNumber" min="-3" max="3" step=".001">
+            </div>
+            <div class="dimInput">
+                <input type="number" name="Width" id="width" value="1280" min="16" max="16384" step="1">
+                <input type="number" name="Height" id="height" value="720" min="16" max="16384" step="1">
+            </div>
+            <button type="submit" id="renderToggle" onclick="toggleRender()">Start Render</button>
+            <progress id="toNextRefresh" value="0" max="1" class="prog"></progress>
+            <div class="inputHolder">
+                <label for="contrast">Contrast</label>
+                <input type="range" name="contrast" id="contrastSlider" value=".15" min="0" max=".5" step=".001">
+            </div>
+            <div class="inputHolder">
+                <label for="red">Red</label>
+                <input type="range" name="red" id="rSlider" value="1" min="0" max="2" step=".001">
+                <label for="r">Invert</label>
+                <input type="checkbox" name="r" id="rInvert">
+            </div>
+            <div class="inputHolder">
+                <label for="green">Green</label>
+                <input type="range" name="green" id="gSlider" value="1" min="0" max="2" step=".001">
+                <label for="g">Invert</label>
+                <input type="checkbox" name="g" id="gInvert">
+            </div>
+            <div class="inputHolder">
+                <label for="blue">Blue</label>
+                <input type="range" name="blue" id="bSlider" value="1" min="0" max="2" step=".001">
+                <label for="b">Invert</label>
+                <input type="checkbox" name="b" id="bInvert">
+            </div>
+            <p id="nonZero" class="debug"></p>
+            <!-- <button type="submit" onclick="autoRefresh = !autoRefresh">🔃</button> -->
+        </div>
+        <div class="canHolder">
+            <canvas class="display" id="output"></canvas>
+        </div>
+    </body>
+</html>

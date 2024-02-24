@@ -1,0 +1,52 @@
+html {
+    --displayBG: rgb(255, 255, 255);
+    overflow: hidden;
+}
+body {
+    background-color: rgb(48, 48, 48);
+    position: relative;
+    /* padding: 8px; */
+    margin: 0px;
+    display: flex;
+}
+.display {
+    width: 100%;
+    max-width: fit-content;
+    max-height: -webkit-fill-available;
+    background-color: var(--displayBG);
+    margin: auto;
+}
+.inputs {
+    background-color: rgb(112, 112, 112);
+    padding: 8px;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    height: -webkit-fill-available;
+}
+.canHolder {
+    padding: 8px;
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    height: -webkit-fill-available;
+}
+.inputHolder {
+    display: flex;
+    justify-content: space-evenly;
+}
+.dimInput {
+    margin-inline: auto;
+}
+.preview {
+    background-color: var(--displayBG);
+    margin-inline: auto;
+    margin-block: 8px;
+}
+.prog {
+    width: 100%;
+}
+.debug {
+    text-align: center;
+}

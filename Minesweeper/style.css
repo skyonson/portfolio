@@ -1,0 +1,44 @@
+.minefield {
+    background-color: aqua;
+
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+body {
+    background-color: lightslategray;
+    padding: 0px;
+    margin: 0px;
+}
+.newGameForm {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+
+    margin: 8px;
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+}
+.newGameForm input {
+    margin-top: 3px;
+    margin-bottom: 10px;
+}
+.newGameForm button {
+    height: 30px;
+    font-size: 20px;
+}
+html {
+    background-color: #2da3f1;
+    background-color: #57f848;
+    background-color: #e61212;
+    background-color: #6107c9;
+    background-color: #03ecfc;
+    background-color: #a15593;
+    background-color: #9e7627;
+    background-color: #490b19;
+}
