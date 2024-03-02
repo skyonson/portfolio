@@ -1,18 +1,22 @@
 const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn";
 
+const extensionReleased = false;
+
+let extensionInstalled = true;
+
+const exampleSettingsList = {
+    autoSaveInterval: { value: 60, type: "number" },
+    getIPsecInterface: { value: false, type: "checkbox" },
+    templateSeperator: { value: false, type: "checkbox" },
+    seperationText: { value: "========================", type: "text" },
+    SHORTGWDETECT: { value: true, type: "checkbox" },
+    placeholderAnimation: { value: false, type: "checkbox" },
+    uptimeUnderAsset: { value: true, type: "checkbox" },
+};
+
 let toolRunnerSettings = localStorage.getItem("settings")
     ? JSON.parse(localStorage.getItem("settings"))
-    : {
-          autoSaveInterval: { value: 60, type: "number" },
-          getIPsecInterface: { value: false, type: "checkbox" },
-          templateSeperator: { value: false, type: "checkbox" },
-          seperationText: { value: "========================", type: "text" },
-          SHORTGWDETECT: { value: true, type: "checkbox" },
-          placeholderAnimation: { value: false, type: "checkbox" },
-          uptimeUnderAsset: { value: true, type: "checkbox" },
-      };
-
-let isExtension = false;
+    : exampleSettingsList;
 
 let extensionCheck = setInterval(function () {
     try {
@@ -24,16 +28,22 @@ let extensionCheck = setInterval(function () {
             function (response) {
                 if (response.alive) {
                     document.getElementById("assetBox").placeholder = "AssetID";
-                    isExtension = true;
+                    extensionInstalled = true;
                     clearInterval(extensionCheck);
+                    document.getElementById("notifBubble").style.display =
+                        "none";
                 }
             }
         );
     } catch (error) {
+        extensionInstalled = false;
         document.getElementById("assetBox").placeholder =
             "Extension unavailable";
+        if (extensionReleased) {
+            document.getElementById("notifBubble").style.display = "block";
+        }
     }
-}, 2000);
+}, 1000);
 
 let autoSaveInterval = toolRunnerSettings["autoSaveInterval"]
     ? toolRunnerSettings["autoSaveInterval"].value
@@ -153,7 +163,7 @@ function getAssets() {
         );
     }
 
-    if (isExtension) {
+    if (extensionInstalled) {
         chrome.runtime.sendMessage(
             toolExtensionID,
             {
@@ -854,6 +864,7 @@ function tableParse(HTMLtable) {
     }
     return output.trim();
 }
+
 if (placeholderAnimation) {
     requestAnimationFrame(placeholderAnimator);
 }
@@ -866,8 +877,20 @@ function addSettings() {
 
     let settingButton = document.createElement("a");
     settingButton.classList += "nav-right";
+    settingButton.style.position = "relative";
     settingButton.innerText = "Settings";
     settingButton.onclick = settingsPopup;
+    settingButton.innerHTML += `<span id="notifBubble" style="
+        position: absolute;
+        top: 15px;
+        right: 10px;
+        width: 10px;
+        height: 10px;
+        padding: 2px 2px 2px 2px;
+        background-color: red;
+        font-size: 0.65em;
+        border-radius: 50%;
+        display: none;"/>`;
     document.getElementById("navBar").appendChild(settingButton);
 
     let test = document.createElement("style");
@@ -898,10 +921,27 @@ function settingsPopup() {
         settingsEditor.style.paddingBottom = "75px";
         settingsEditor.style.backgroundColor = "var(--color-06)";
         settingsEditor.style.borderRadius = "8px";
+        settingsEditor.style.textAlign = "center";
         settingsEditor.id = "settingsEditor";
 
-        settingsEditor.innerHTML = `<div id="settingHolder"></div><div style="display: flex;justify-content: space-evenly;position: absolute;transform: translate(-50%, -100%);left: 50%;bottom: 0px;width: 100%;
-    "><a onclick="closeSettings(true)">Save</a><a onclick="closeSettings(false)">Close</a></div>`;
+        settingsEditor.innerHTML = `
+        <div id="settingHolder"></div>
+        ${
+            extensionInstalled || !extensionReleased
+                ? ""
+                : `<a href="https://chromewebstore.google.com/detail/find-nmp-device/apoimnejodnlchgeggcckdglipheigpn" target="_blank">Get Tool Extension</a>`
+        }
+        <div style="display: flex;
+            justify-content: space-evenly;
+            position: absolute;
+            transform: translate(-50%, -100%);
+            left: 50%;
+            bottom: 0px;
+            width: 100%;">
+        <a onclick="closeSettings(true)">Save</a>
+        <a onclick="closeSettings(false)">Close</a>
+        </div>`;
+
         let temp;
         for (setting in toolRunnerSettings) {
             temp = document.createElement("div");
