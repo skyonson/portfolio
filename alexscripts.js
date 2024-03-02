@@ -1,3 +1,5 @@
+const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn"
+
 let toolRunnerSettings = localStorage.getItem("settings")
     ? JSON.parse(localStorage.getItem("settings"))
     : {
@@ -132,7 +134,7 @@ function getAssets() {
 
     if (isExtension) {
         chrome.runtime.sendMessage(
-            extensionID,
+            toolExtensionID,
             {
                 request: "assets",
                 assetID: assetID,
@@ -142,7 +144,7 @@ function getAssets() {
     } else {
         try {
             chrome.runtime
-                .sendMessage(extensionID, { request: "cookie" })
+                .sendMessage(toolExtensionID, { request: "cookie" })
                 .then((response) => (isExtension = true));
         } catch (error) {
             fetch(
@@ -208,7 +210,7 @@ function getTools(assets) {
     for (const asset in assets) {
         if(isExtension){
         chrome.runtime.sendMessage(
-            extensionID,
+            toolExtensionID,
             {
                 request: "tools",
                 assetID: assets[asset].assetID,
@@ -331,7 +333,7 @@ function runAllTools(type, assetID, toolList) {
 
 function remoteRunTool(type, assetID, tool) {
     chrome.runtime.sendMessage(
-        extensionID,
+        toolExtensionID,
         {
             request: "run",
             assetID: assetID,
