@@ -1,4 +1,4 @@
-const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn"
+const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn";
 
 let toolRunnerSettings = localStorage.getItem("settings")
     ? JSON.parse(localStorage.getItem("settings"))
@@ -13,6 +13,27 @@ let toolRunnerSettings = localStorage.getItem("settings")
       };
 
 let isExtension = false;
+
+let extensionCheck = setInterval(function () {
+    try {
+        chrome.runtime.sendMessage(
+            toolExtensionID,
+            {
+                request: "heartbeat",
+            },
+            function (response) {
+                if (response.alive) {
+                    document.getElementById("assetBox").placeholder = "AssetID";
+                    isExtension = true;
+                    clearInterval(extensionCheck);
+                }
+            }
+        );
+    } catch (error) {
+        document.getElementById("assetBox").placeholder =
+            "Extension unavailable";
+    }
+}, 2000);
 
 let autoSaveInterval = toolRunnerSettings["autoSaveInterval"]
     ? toolRunnerSettings["autoSaveInterval"].value
@@ -141,18 +162,6 @@ function getAssets() {
             },
             parseAssetResponse
         );
-    } else {
-        try {
-            chrome.runtime
-                .sendMessage(toolExtensionID, { request: "cookie" })
-                .then((response) => (isExtension = true));
-        } catch (error) {
-            fetch(
-                `https://faultuser.hughes.net/RapidSuite/externalObjectDetails.gsp?name=${assetID}`
-            )
-                .then((r) => r.text())
-                .then((r) => parseAssetResponse(r));
-        }
     }
 }
 
@@ -185,8 +194,8 @@ function createAssetTemplate(assets) {
     // the nested loops go through the array of asset types from above
     // checks for all of the devices of that type from the list of assets from site
     // just to add the devices in the right order
-    for (type in assetOrder) {
-        for (asset in assets) {
+    for (const type in assetOrder) {
+        for (const asset in assets) {
             if (assets[asset].type == assetOrder[type]) {
                 if (templateSeperator) {
                     template += `${seperationText}\n`;
@@ -208,7 +217,6 @@ function createAssetTemplate(assets) {
 
 function getTools(assets) {
     for (const asset in assets) {
-        if(isExtension){
         chrome.runtime.sendMessage(
             toolExtensionID,
             {
@@ -217,23 +225,15 @@ function getTools(assets) {
                 type: assets[asset].type,
             },
             parseAssetTools
-        );} else {
-            fetch(`https://faultuser.hughes.net/RapidSuite/externalObjectDetailsActionsPanel.gsp?name=${request.assetID}&includeScripts=false`)
-                .then(r => r.text())
-                .then(r => parseAssetTools({page:r, assetID: assets[asset].assetID, type: assets[asset].type}));
-        }
+        );
     }
 }
+
 function parseAssetTools(response) {
-    let page = new DOMParser().parseFromString(
-        response.page,
-        "text/html"
-    );
+    let page = new DOMParser().parseFromString(response.page, "text/html");
     let assetID = response.assetID;
     let type = response.type;
-    let troubleshooting = page.getElementById(
-        "troubleshootingActions"
-    );
+    let troubleshooting = page.getElementById("troubleshootingActions");
     let advanced = page.getElementById("advancedActions");
     let toolList = { hasTools: false };
     for (let i = 0; i < troubleshooting.length; i++) {
@@ -275,10 +275,11 @@ function parseAssetTools(response) {
         removeAsset(assetID);
     }
 }
+
 function createTemplate(type, assetID, toolList) {
     let template;
     let hasInterface = false;
-    for (tool in toolList) {
+    for (const tool in toolList) {
         if (toolList[tool].id == "PingInterfaces") hasInterface = true;
     }
     if (hasInterface && uptimeUnderAsset) {
@@ -288,7 +289,7 @@ function createTemplate(type, assetID, toolList) {
     }
 
     for (order in toolOrder) {
-        for (tool in toolList) {
+        for (const tool in toolList) {
             if (toolList[tool].id == toolOrder[order]) {
                 template +=
                     toolList[tool].name +
@@ -326,7 +327,7 @@ function removeAsset(assetID) {
 }
 
 function runAllTools(type, assetID, toolList) {
-    for (tool in toolList) {
+    for (const tool in toolList) {
         remoteRunTool(type, assetID, toolList[tool].id);
     }
 }
@@ -340,261 +341,245 @@ function remoteRunTool(type, assetID, tool) {
             tool: tool,
             type: type,
         },
-        function (response) {
-            let page = new DOMParser().parseFromString(
-                response.page,
-                "text/html"
-            );
-            let assetID = response.assetID;
-            let tool = response.tool;
-            let type = response.type;
-            let results = "";
-            try {
-                switch (tool) {
-                    case "Ping":
-                        results = page.getElementById("pingResults");
-                        let pingResult = "";
-                        let offset = results.children.length % 7 == 1 ? 3 : 2; //Hackiest bit of code so far, failed PCS on core2 has an extra child at the end that makes the result one earlier
-                        pingResult =
-                            results.children[
-                                results.children.length - offset
-                            ].textContent
-                                .split("\n")
-                                .slice(0, 3)
-                                .join("\n") + "\n\n";
-                        if (type.trim() == "Acceleration Appliance") {
-                            try {
-                                for (
-                                    let i = 0;
-                                    i <
-                                    results.querySelectorAll("table").length;
-                                    i++
-                                ) {
-                                    pingResult +=
-                                        results.querySelectorAll("table")[i]
-                                            .innerText + "\n";
-                                }
-                            } catch (exception) {}
+        parseToolResults
+    );
+}
+
+function parseToolResults(response) {
+    let page = new DOMParser().parseFromString(response.page, "text/html");
+    let assetID = response.assetID;
+    let tool = response.tool;
+    let type = response.type;
+    let results = "";
+    try {
+        switch (tool) {
+            case "Ping":
+                results = page.getElementById("pingResults");
+                let pingResult = "";
+                let offset = results.children.length % 7 == 1 ? 3 : 2; //Hackiest bit of code so far, failed PCS on core2 has an extra child at the end that makes the result one earlier
+                pingResult =
+                    results.children[
+                        results.children.length - offset
+                    ].textContent
+                        .split("\n")
+                        .slice(0, 3)
+                        .join("\n") + "\n\n";
+                if (type.trim() == "Acceleration Appliance") {
+                    try {
+                        for (
+                            let i = 0;
+                            i < results.querySelectorAll("table").length;
+                            i++
+                        ) {
+                            pingResult +=
+                                results.querySelectorAll("table")[i].innerText +
+                                "\n";
                         }
-                        addToolResult(assetID, tool, pingResult);
-                        break;
-                    case "PingHTS":
-                        results = page.getElementById("pingResults");
+                    } catch (exception) {}
+                }
+                addToolResult(assetID, tool, pingResult);
+                break;
+            case "PingHTS":
+                results = page.getElementById("pingResults");
 
-                        let pingHTSResult = results.children[8].innerText;
-                        pingHTSResult += results.children[9].innerText;
-                        pingHTSResult += results.children[10].innerText;
+                let pingHTSResult = results.children[8].innerText;
+                pingHTSResult += results.children[9].innerText;
+                pingHTSResult += results.children[10].innerText;
 
-                        if (pingHTSResult.trim() == "") {
-                            pingHTSResult += results.children[3].innerText;
-                            pingHTSResult += results.children[4].innerText;
-                        }
-                        addToolResult(assetID, tool, pingHTSResult);
-                        break;
-                    case "PingECM":
-                        results = page.querySelectorAll("table");
+                if (pingHTSResult.trim() == "") {
+                    pingHTSResult += results.children[3].innerText;
+                    pingHTSResult += results.children[4].innerText;
+                }
+                addToolResult(assetID, tool, pingHTSResult);
+                break;
+            case "PingECM":
+                results = page.querySelectorAll("table");
 
-                        let pingECMResult = tableParse(results[0]);
-                        pingECMResult += `\n${tableParse(results[1])}`;
+                let pingECMResult = tableParse(results[0]);
+                pingECMResult += `\n${tableParse(results[1])}`;
 
-                        addToolResult(assetID, tool, pingECMResult);
-                        break;
-                    case "PingJupEntTerminal":
-                        results = page.querySelectorAll("table");
+                addToolResult(assetID, tool, pingECMResult);
+                break;
+            case "PingJupEntTerminal":
+                results = page.querySelectorAll("table");
 
-                        let pingJupiter = tableParse(results[0]);
+                let pingJupiter = tableParse(results[0]);
 
-                        pingJupiter += `\n${tableParse(results[1])}`;
+                pingJupiter += `\n${tableParse(results[1])}`;
 
-                        addToolResult(assetID, tool, pingJupiter);
-                        break;
-                    case "PingOrCurrentStatusFortimgr":
-                        results = page.getElementById("pingResults");
+                addToolResult(assetID, tool, pingJupiter);
+                break;
+            case "PingOrCurrentStatusFortimgr":
+                results = page.getElementById("pingResults");
 
-                        let pingFortimgrResult = tableParse(
-                            results.querySelectorAll("table")[0]
-                        );
+                let pingFortimgrResult = tableParse(
+                    results.querySelectorAll("table")[0]
+                );
 
-                        addToolResult(assetID, tool, pingFortimgrResult);
-                        break;
-                    case "PingOrCurrentStatusMeraki":
-                        let pingMerakiResult = tableParse(
-                            page.querySelector("table")
-                        );
-                        addToolResult(assetID, tool, pingMerakiResult);
-                        break;
-                    case "PingOrCurrentStatusVeloCloud":
-                        results = page.getElementById("pingResults");
+                addToolResult(assetID, tool, pingFortimgrResult);
+                break;
+            case "PingOrCurrentStatusMeraki":
+                let pingMerakiResult = tableParse(page.querySelector("table"));
+                addToolResult(assetID, tool, pingMerakiResult);
+                break;
+            case "PingOrCurrentStatusVeloCloud":
+                results = page.getElementById("pingResults");
 
-                        let pingVeloCloudResult = tableParse(
-                            results.querySelectorAll("table")[0]
-                        ).trim();
-                        pingVeloCloudResult +=
+                let pingVeloCloudResult = tableParse(
+                    results.querySelectorAll("table")[0]
+                ).trim();
+                pingVeloCloudResult +=
+                    "\n" + tableParse(results.querySelectorAll("table")[1]);
+                if (results.querySelectorAll("table").length > 2) {
+                    pingVeloCloudResult +=
+                        "\n" + tableParse(results.querySelectorAll("table")[2]);
+                }
+                // .innerText.split("\n")
+                // .map((s) => s.trim())
+                // .join("\n")
+                // .replace(/\n{3,}/g, "|")
+                // .replace(/\n{1}/g, " ")
+                // .replaceAll("|", "\n")
+                // .trim();
+
+                addToolResult(assetID, tool, pingVeloCloudResult);
+                break;
+            case "PingInterfaces":
+                results = page.querySelector("table");
+                let uptime = page.querySelectorAll("b");
+                let interfaceResult;
+                if (results) {
+                    interfaceResult = results.innerText
+                        .replaceAll(" ", "")
+                        .split("\n\n")
+                        .filter((line) => line.includes("wan"))
+                        .join(".")
+                        .replaceAll("\n", " ")
+                        .replaceAll(".", "\n");
+                    if (getIPsecInterface) {
+                        interfaceResult +=
                             "\n" +
-                            tableParse(results.querySelectorAll("table")[1]);
-                        if (results.querySelectorAll("table").length > 2) {
-                            pingVeloCloudResult +=
-                                "\n" +
-                                tableParse(
-                                    results.querySelectorAll("table")[2]
-                                );
-                        }
-                        // .innerText.split("\n")
-                        // .map((s) => s.trim())
-                        // .join("\n")
-                        // .replace(/\n{3,}/g, "|")
-                        // .replace(/\n{1}/g, " ")
-                        // .replaceAll("|", "\n")
-                        // .trim();
-
-                        addToolResult(assetID, tool, pingVeloCloudResult);
-                        break;
-                    case "PingInterfaces":
-                        results = page.querySelector("table");
-                        let uptime = page.querySelectorAll("b");
-                        let interfaceResult;
-                        if (results) {
-                            interfaceResult = results.innerText
+                            results.innerText
                                 .replaceAll(" ", "")
                                 .split("\n\n")
-                                .filter((line) => line.includes("wan"))
+                                .filter((line) => line.includes("ipsec-tunnel"))
                                 .join(".")
                                 .replaceAll("\n", " ")
                                 .replaceAll(".", "\n");
-                            if (getIPsecInterface) {
-                                interfaceResult +=
-                                    "\n" +
-                                    results.innerText
-                                        .replaceAll(" ", "")
-                                        .split("\n\n")
-                                        .filter((line) =>
-                                            line.includes("ipsec-tunnel")
-                                        )
-                                        .join(".")
-                                        .replaceAll("\n", " ")
-                                        .replaceAll(".", "\n");
 
-                                interfaceResult +=
-                                    "\n" +
-                                    results.innerText
-                                        .replaceAll(" ", "")
-                                        .split("\n\n")
-                                        .filter((line) =>
-                                            line.includes("ipsec-backup")
-                                        )
-                                        .join(".")
-                                        .replaceAll("\n", " ")
-                                        .replaceAll(".", "\n");
-                            }
-                        }
-                        if (uptime[2] && uptimeUnderAsset) {
-                            // console.log(uptime)
-                            addUptimeResult(
-                                uptime[2].innerText.replace("=", "-"),
-                                assetID
-                            );
-                        } else if (uptime[2] && !uptimeUnderAsset) {
-                            interfaceResult += `\n${uptime[2].innerText.replace(
-                                "=",
-                                "-"
-                            )}`;
-                        } else {
-                            removeUptimeResult(assetID);
-                        }
-
-                        addToolResult(assetID, tool, interfaceResult);
-                        break;
-                    case "getIPSecStatus":
-                        results = page.getElementById("pingResults");
-                        let textResult = results.textContent.split("\n");
-
-                        let IPSecResult =
-                            firstContaining(textResult, "ipsec-tunnel") +
+                        interfaceResult +=
                             "\n" +
-                            firstContaining(textResult, "ipsec-backup");
-
-                        addToolResult(assetID, tool, IPSecResult);
-                        break;
-                    case "getSysArp":
-                        results = page.getElementById("pingResults");
-
-                        let sysArpResult = results.textContent
-                            .split("\n")
-                            .filter((line) => line.includes("wan"))
-                            .join("\n");
-
-                        addToolResult(assetID, tool, sysArpResult);
-                        break;
-                    case "getRouterGWDetect":
-                        results = page.getElementById("pingResults");
-                        let GWDetectResult = "";
-                        if (SHORTGWDETECT) {
-                            GWDetectResult =
-                                results.children[0].children[5].textContent
-                                    .split("\n")
-                                    .filter((line) => line.includes("WAN"))
-                                    .join("\n");
-
-                            if (GWDetectResult.trim().length < 1) {
-                                GWDetectResult =
-                                    results.children[0].children[5].textContent
-                                        .split("\n")
-                                        .filter((line) => line.includes("VLAN"))
-                                        .join("\n");
-                            }
-                        } else {
-                            GWDetectResult =
-                                results.children[0].children[5].textContent
-                                    .split("#")[1]
-                                    .split("\n")
-                                    .slice(1, -1)
-                                    .join("\n")
-                                    .split("\n\n")
-                                    .filter((line) => line.includes("wan"))
-                                    .join("\n\n");
-
-                            if (GWDetectResult.trim().length < 1) {
-                                GWDetectResult =
-                                    results.children[0].children[5].textContent
-                                        .split("#")[1]
-                                        .split("\n")
-                                        .slice(1, -1)
-                                        .join("\n")
-                                        .split("\n\n")
-                                        .filter((line) => line.includes("vlan"))
-                                        .join("\n\n");
-                            }
-                        }
-                        addToolResult(assetID, tool, GWDetectResult);
-                        break;
-                    case "PingOrCurrentStatusWattbox":
-                        results = page.getElementById("pingResults");
-                        let WBPingResults = "";
-                        WBPingResults = tableParse(
-                            results.querySelectorAll("table")[0]
-                        )
-                            .split("\n")
-                            .slice(0, 12)
-                            .join("\n");
-                        addToolResult(assetID, tool, WBPingResults);
-                        break;
-                    case "PingOrCurrentStatusHughesApe":
-                        results = page.getElementById("pingResults");
-                        let HAPingResults = "";
-                        HAPingResults = tableParse(
-                            results.querySelectorAll("table")[1]
-                        );
-                        addToolResult(assetID, tool, HAPingResults);
-                        break;
-                    default:
-                        break;
+                            results.innerText
+                                .replaceAll(" ", "")
+                                .split("\n\n")
+                                .filter((line) => line.includes("ipsec-backup"))
+                                .join(".")
+                                .replaceAll("\n", " ")
+                                .replaceAll(".", "\n");
+                    }
                 }
-            } catch (error) {
-                addToolResult(assetID, tool, "");
-                console.error(assetID, tool, error);
-            }
+                if (uptime[2] && uptimeUnderAsset) {
+                    // console.log(uptime)
+                    addUptimeResult(
+                        uptime[2].innerText.replace("=", "-"),
+                        assetID
+                    );
+                } else if (uptime[2] && !uptimeUnderAsset) {
+                    interfaceResult += `\n${uptime[2].innerText.replace(
+                        "=",
+                        "-"
+                    )}`;
+                } else {
+                    removeUptimeResult(assetID);
+                }
+
+                addToolResult(assetID, tool, interfaceResult);
+                break;
+            case "getIPSecStatus":
+                results = page.getElementById("pingResults");
+                let textResult = results.textContent.split("\n");
+
+                let IPSecResult =
+                    firstContaining(textResult, "ipsec-tunnel") +
+                    "\n" +
+                    firstContaining(textResult, "ipsec-backup");
+
+                addToolResult(assetID, tool, IPSecResult);
+                break;
+            case "getSysArp":
+                results = page.getElementById("pingResults");
+
+                let sysArpResult = results.textContent
+                    .split("\n")
+                    .filter((line) => line.includes("wan"))
+                    .join("\n");
+
+                addToolResult(assetID, tool, sysArpResult);
+                break;
+            case "getRouterGWDetect":
+                results = page.getElementById("pingResults");
+                let GWDetectResult = "";
+                if (SHORTGWDETECT) {
+                    GWDetectResult = results.children[0].children[5].textContent
+                        .split("\n")
+                        .filter((line) => line.includes("WAN"))
+                        .join("\n");
+
+                    if (GWDetectResult.trim().length < 1) {
+                        GWDetectResult =
+                            results.children[0].children[5].textContent
+                                .split("\n")
+                                .filter((line) => line.includes("VLAN"))
+                                .join("\n");
+                    }
+                } else {
+                    GWDetectResult = results.children[0].children[5].textContent
+                        .split("#")[1]
+                        .split("\n")
+                        .slice(1, -1)
+                        .join("\n")
+                        .split("\n\n")
+                        .filter((line) => line.includes("wan"))
+                        .join("\n\n");
+
+                    if (GWDetectResult.trim().length < 1) {
+                        GWDetectResult =
+                            results.children[0].children[5].textContent
+                                .split("#")[1]
+                                .split("\n")
+                                .slice(1, -1)
+                                .join("\n")
+                                .split("\n\n")
+                                .filter((line) => line.includes("vlan"))
+                                .join("\n\n");
+                    }
+                }
+                addToolResult(assetID, tool, GWDetectResult);
+                break;
+            case "PingOrCurrentStatusWattbox":
+                results = page.getElementById("pingResults");
+                let WBPingResults = "";
+                WBPingResults = tableParse(results.querySelectorAll("table")[0])
+                    .split("\n")
+                    .slice(0, 12)
+                    .join("\n");
+                addToolResult(assetID, tool, WBPingResults);
+                break;
+            case "PingOrCurrentStatusHughesApe":
+                results = page.getElementById("pingResults");
+                let HAPingResults = "";
+                HAPingResults = tableParse(
+                    results.querySelectorAll("table")[1]
+                );
+                addToolResult(assetID, tool, HAPingResults);
+                break;
+            default:
+                break;
         }
-    );
+    } catch (error) {
+        addToolResult(assetID, tool, "");
+        console.error(assetID, tool, error);
+    }
 }
 
 function addUptimeResult(uptime, asset) {
