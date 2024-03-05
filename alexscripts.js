@@ -887,7 +887,7 @@ function addSettings() {
         width: 10px;
         height: 10px;
         padding: 2px 2px 2px 2px;
-        background-color: red;
+        background-image: radial-gradient(red, #870000);
         font-size: 0.65em;
         border-radius: 50%;
         display: none;"/>`;
