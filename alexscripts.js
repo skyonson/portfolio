@@ -1,5 +1,7 @@
 const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn";
 
+const VersionNumber = "1.0.1"
+
 const extensionReleased = true;
 
 let extensionInstalled = true;
@@ -933,7 +935,7 @@ function settingsPopup() {
         <div id="settingHolder"></div>
         ${
             extensionInstalled || !extensionReleased
-                ? ""
+                ? `Version ${VersionNumber}`
                 : `<a href="https://chromewebstore.google.com/detail/find-nmp-device/apoimnejodnlchgeggcckdglipheigpn" target="_blank">Get Tool Extension</a>`
         }
         <div style="display: flex;
