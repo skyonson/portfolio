@@ -363,7 +363,7 @@ function remoteRunTool(type, assetID, tool) {
 function parseToolResults(response) {
     let page = new DOMParser().parseFromString(response.page, "text/html");
     let assetID = response.assetID;
-    let tool = response.tool;
+    let tool = response.tool == "Ping50" ? "Ping" : response.tool;
     let type = response.type;
     let results = "";
     try {
