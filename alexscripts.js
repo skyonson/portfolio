@@ -27,7 +27,7 @@ let extensionCheck = setInterval(function () {
             },
             function (response) {
                 if (response.alive) {
-                    document.getElementById("assetBox").placeholder = "AssetID";
+                    document.getElementById("assetBox").placeholder = "Asset ID";
                     extensionInstalled = true;
                     clearInterval(extensionCheck);
                     document.getElementById("notifBubble").style.display =
