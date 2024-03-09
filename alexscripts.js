@@ -27,7 +27,8 @@ let extensionCheck = setInterval(function () {
             },
             function (response) {
                 if (response.alive) {
-                    document.getElementById("assetBox").placeholder = "Asset ID";
+                    document.getElementById("assetBox").placeholder =
+                        "Asset ID";
                     extensionInstalled = true;
                     clearInterval(extensionCheck);
                     document.getElementById("notifBubble").style.display =
@@ -343,6 +344,10 @@ function runAllTools(type, assetID, toolList) {
 }
 
 function remoteRunTool(type, assetID, tool) {
+    if (assetID != "Acceleration Appliance" && tool == "Ping") {
+        tool = "Ping50";
+    }
+
     chrome.runtime.sendMessage(
         toolExtensionID,
         {
