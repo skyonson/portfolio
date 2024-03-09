@@ -346,7 +346,7 @@ function runAllTools(type, assetID, toolList) {
 }
 
 function remoteRunTool(type, assetID, tool) {
-    if (assetID != "Acceleration Appliance" && tool == "Ping") {
+    if (type != "Acceleration Appliance" && tool == "Ping") {
         tool = "Ping50";
     }
 
