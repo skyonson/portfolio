@@ -1,6 +1,6 @@
 const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn";
 
-const extensionReleased = false;
+const extensionReleased = true;
 
 let extensionInstalled = true;
 
