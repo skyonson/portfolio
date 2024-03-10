@@ -1,6 +1,6 @@
 const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn";
 
-const VersionNumber = "1.0.1"
+const VersionNumber = "1.0.2"
 
 const extensionReleased = true;
 
@@ -502,7 +502,7 @@ function parseToolResults(response) {
                         assetID
                     );
                 } else if (uptime[2] && !uptimeUnderAsset) {
-                    interfaceResult += `\n${uptime[2].innerText.replace(
+                    interfaceResult += `\n\n${uptime[2].innerText.replace(
                         "=",
                         "-"
                     )}`;
