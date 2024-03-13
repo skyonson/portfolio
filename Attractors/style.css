@@ -8,6 +8,7 @@ body {
     /* padding: 8px; */
     margin: 0px;
     display: flex;
+    height: 100%;
 }
 .display {
     width: 100%;
@@ -16,10 +17,17 @@ body {
     background-color: var(--displayBG);
     margin: auto;
 }
+input[type=number]{
+    width: 75px;
+}
+input[type=slider]{
+    width: 50%;
+}
 .inputs {
     background-color: rgb(112, 112, 112);
     padding: 8px;
-    width: 250px;
+    width: 20%;
+    max-width: 350px;
     display: flex;
     flex-direction: column;
     height: -webkit-fill-available;
