@@ -1,6 +1,6 @@
 .minefield {
     background-color: aqua;
-
+    margin: auto;
     user-drag: none;
     -webkit-user-drag: none;
     user-select: none;
@@ -12,6 +12,7 @@ body {
     background-color: lightslategray;
     padding: 0px;
     margin: 0px;
+    display: flex;
 }
 .newGameForm {
     position: absolute;
@@ -33,12 +34,13 @@ body {
     font-size: 20px;
 }
 html {
-    background-color: #2da3f1;
-    background-color: #57f848;
+    background-color: lightslategray;
+    /* background-color: #2da3f1; */
+    /* background-color: #57f848;
     background-color: #e61212;
     background-color: #6107c9;
     background-color: #03ecfc;
     background-color: #a15593;
     background-color: #9e7627;
-    background-color: #490b19;
+    background-color: #490b19; */
 }
