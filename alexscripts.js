@@ -1,6 +1,6 @@
 const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn";
 
-const VersionNumber = "1.0.2"
+const VersionNumber = "1.0.2";
 
 const extensionReleased = true;
 
@@ -421,8 +421,9 @@ function parseToolResults(response) {
                 results = page.querySelectorAll("table");
 
                 let pingJupiter = tableParse(results[0]);
-
-                pingJupiter += `\n${tableParse(results[1])}`;
+                if (results[1]) {
+                    pingJupiter += `\n${tableParse(results[1])}`;
+                }
 
                 addToolResult(assetID, tool, pingJupiter);
                 break;
