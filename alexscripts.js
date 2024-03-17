@@ -1,6 +1,6 @@
 const toolExtensionID = "apoimnejodnlchgeggcckdglipheigpn";
 
-const VersionNumber = "1.0.2";
+const VersionNumber = "1.0.3";
 
 const extensionReleased = true;
 
